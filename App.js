@@ -85,7 +85,7 @@ export default class App extends React.Component {
 
   render() {
     return (
-     <Container>
+    //  <Container>
         <View style={styles.container}>
           {/* <img src={this.state.image_url} /> */}
           <Text />
@@ -99,10 +99,8 @@ export default class App extends React.Component {
           </Text>
           <Text>{this.state.temperature}</Text>
         </View>
-      </Container>
-
+      {/* </Container>
       <Header />
-
       <Footer>
         <FooterTab>
             <Button vertical>
@@ -124,7 +122,7 @@ export default class App extends React.Component {
           </FooterTab>
 
 
-        </Footer>
+        </Footer> */}
     );
   }
 }
