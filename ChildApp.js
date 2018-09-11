@@ -140,7 +140,6 @@ export default class ChildApp extends React.Component {
       {this.state.homeLocation}, {this.state.homeCountry}{" "}
       </Text>
   </View>
-  <Text>{this.state.ip}</Text>
   
 
   <Text>
