@@ -1,0 +1,1 @@
+const clear_sky_day='2196f3';
