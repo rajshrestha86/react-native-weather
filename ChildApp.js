@@ -99,6 +99,7 @@ export default class ChildApp extends React.Component {
         Humidity: weather_request.main.humidity,
         TempMin: (weather_request.main.temp_min-273).toFixed(2),
         TempMax: (weather_request.main.temp_max-273).toFixed(2),
+        error: false
       }
     });
     } catch(error){
@@ -203,7 +204,7 @@ export default class ChildApp extends React.Component {
                       <Item regular>
                       <Input  small placeholder='Type city Name to Search' onChangeText={(text)=>this.setState({searchText: text})}/>
                       
-                      <Button iconLeft dark onPress={()=>{
+                      <Button iconLeft style={{backgroundColor: '#3F51B5'}} onPress={()=>{
                                              this.setState({searchButtonClicked: true})
                                              this.setState({search: {WeatherLoading: true}})
                                              this.searchWeatherFunction(this.state.searchText)}} > 
@@ -224,6 +225,7 @@ export default class ChildApp extends React.Component {
     // const icon=`./icons/${this.state.homeWeatherIcon}`;
     console.log(data)
     if(data.WeatherLoading==false && data.error==false)
+    {
       return (
         <View>
           <View style={styles.locationContainer} >
@@ -277,6 +279,7 @@ export default class ChildApp extends React.Component {
           </View>
         </View>
       );
+    }
         else if(data.error==true){
           return(
             <View>
@@ -307,6 +310,7 @@ export default class ChildApp extends React.Component {
     if(weather_request.cod==200)
     this.setState({
       search:{
+        error: false,
         WeatherLoading: false,
         Location: weather_request.name,
         Weather: weather_request.weather[0].main,
