@@ -1,50 +1,50 @@
 import React from 'react';
-import { StyleSheet,  View, StatusBar } from 'react-native';
-import { Container, Header, Content, Footer, FooterTab, InputGroup, Input, Button, Icon, Text, Spinner} from 'native-base';
+import { StyleSheet,  View, StatusBar, Image } from 'react-native';
+import { Container, Header, Content, Footer, FooterTab, InputGroup, Input, Button, Icon, Text, Spinner, Item} from 'native-base';
 import { SearchBar } from 'react-native-elements';
 import {LinearGradient} from 'expo';
+import {icons} from './config';
+import FooterTheme from './native-base-theme/components/Footer';
+import material from './native-base-theme/variables/platform';
 
 export default class ChildApp extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      homeWeatherLoading: true,
-      homeLocation: '',
-      homeWeather: '',
-      homeWeatherDescription: '',
-      homeCountry: '',
-      homeTemp: '',
-      homePressure: '',
-      homeHumidity:'',
-      homeTempMin:'',
-      homeTempMax: '',
-      searchLocation: '',
-      searchWeather: '',
-      searchWeatherDescription: '',
-      searchCountry: '',
-      searchTemp:'',
-      searchPressure: '',
-      searchHumidity: '',
-      searchTempMin: '',
-      searchTempMax: '',
+      home: {
+        WeatherLoading: true,
+        error: false,
+        Location: '',
+        Weather: '',
+        WeatherDescription: '',
+        WeatherIcon: '',
+        Country: '',
+        Temp: '',
+        Pressure: '',
+        Humidity:'',
+        TempMin:'',
+        TempMax: '',
+      },
 
+      search: {
+        WeatherLoading: true,
+        error: false,
+        Location: '',
+        Weather: '',
+        WeatherDescription: '',
+        WeatherIcon: '',
+        Country: '',
+        Temp: '',
+        Pressure: '',
+        Humidity:'',
+        TempMin:'',
+        TempMax: '',
+      },
+     
       selectedTab: "home",
       searchText: '',
-      searchComplete: false,
-      ip: "Getting your Location and Weather. Please wait.....",
-      country: "",
-      city: "",
-      countryCode: "",
-      weather: "",
-      weather_description: "",
-      temperature: "",
-      pressure: '',
-      humidity: '',
-      temp_min: '',
-      temp_max: '',
-      image_url: "",
-      cod: ''
+      searchButtonClicked:'',      
     };
     this.getHomeWeather();
   }
@@ -82,22 +82,88 @@ export default class ChildApp extends React.Component {
     const API_KEY = "c8f81770c04fd624e4dbe14a751939e6";
     const ROOT_URL = `https://api.openweathermap.org/data/2.5/weather?appid=${API_KEY}`;
     const url = `${ROOT_URL}&q=${this.state.homeLocation}`;
-
-    const request = await fetch(url);
-    const weather_request = await request.json();
-    if(weather_request.cod==200)
+    try{
+      const request = await fetch(url);
+      const weather_request = await request.json();
+      if(weather_request.cod==200)
     this.setState({
-      homeWeatherLoading: false,
-      homeLocation: weather_request.name,
-      homeWeather: weather_request.weather[0].main,
-      homeWeatherDescription: weather_request.weather[0].description,
-      homeCountry: weather_request.sys.country,
-      homeTemp: (weather_request.main.temp - 273).toFixed(2),
-      homePressure: weather_request.main.pressure,
-      homeHumidity: weather_request.main.humidity,
-      homeTempMin: (weather_request.main.temp_min-273).toFixed(2),
-      homeTempMax: (weather_request.main.temp_max-273).toFixed(2),
-    });   
+      home:{
+        WeatherLoading: false,
+        Location: weather_request.name,
+        Weather: weather_request.weather[0].main,
+        WeatherDescription: weather_request.weather[0].description,
+        WeatherIcon: this.getIcon(weather_request.weather[0].icon),
+        Country: weather_request.sys.country,
+        Temp: (weather_request.main.temp - 273).toFixed(2),
+        Pressure: weather_request.main.pressure,
+        Humidity: weather_request.main.humidity,
+        TempMin: (weather_request.main.temp_min-273).toFixed(2),
+        TempMax: (weather_request.main.temp_max-273).toFixed(2),
+      }
+    });
+    } catch(error){
+      this.setState({home: {WeatherLoading: false, error: true}})
+    }
+       
+  }
+
+  getIcon(code){
+    switch(code){
+      case '01d':
+        return icons.clear_day;
+        break;
+      case '01n':
+        return icons.clear_night;
+        break;
+      case '02d':
+        return icons.few_clouds_day;
+        break;
+      case '02d':
+        return icons.few_clouds_night;
+        break;  
+      case '03d':
+        return icons.scattered_clouds_day;
+        break;
+      case '03n':
+        return icons.scattered_clouds_night;
+        break;
+      case '04d':
+        return icons.broken_clouds_day;
+        break;
+      case '04n':
+        return icons.broken_clouds_night;
+        break;
+      case '09d':
+        return icons.shower_rain_day;
+        break;
+      case '09n':
+        return icons.shower_rain_night;
+        break;
+      case '10d':
+        return icons.rain_day;
+        break;
+      case '10n':
+        return icons.rain_night;
+        break;
+      case '11d':
+        return icons.thunderstorm_day;
+        break;
+      case '11n':
+        return icons.thunderstorm_night;
+        break;
+      case '13d':
+        return icons.snow_day;
+        break;
+      case '13n':
+        return icons.snow_night;
+        break;
+      case '50d':
+        return icons.mist_day;
+        break;
+      case '50n':
+        return icons.mist_night;
+        break;  
+    }
   }
 
 
@@ -105,7 +171,7 @@ export default class ChildApp extends React.Component {
       switch(this.state.selectedTab){
           
         case 'home': // Search and Display the weather
-            return this.displayHomeWeather();
+            return this.displayHomeWeatherTab();
             break;
           case 'search':
             return this.searchWeatherTab();
@@ -114,14 +180,14 @@ export default class ChildApp extends React.Component {
   }
 
 
-  displayHomeWeather(){
+  displayHomeWeatherTab(){
 
     return(
             <View style={styles.container}>
             
-            {this.renderHomeLoadingSpinner()}
+            {this.renderLoadingSpinner(this.state.home.WeatherLoading)}
             
-            {this.displayWeather()}
+            {this.displayWeather(this.state.home)}
 
             </View>   
             
@@ -130,63 +196,102 @@ export default class ChildApp extends React.Component {
   }
 
 
+  searchWeatherTab(){
+    return(
+       <View style={styles.container}> 
+      <InputGroup  style={{marginTop: 5, padding: 10, alignItems: "baseline"}}>
+                      <Item regular>
+                      <Input  small placeholder='Type city Name to Search' onChangeText={(text)=>this.setState({searchText: text})}/>
+                      
+                      <Button iconLeft dark onPress={()=>{
+                                             this.setState({searchButtonClicked: true})
+                                             this.setState({search: {WeatherLoading: true}})
+                                             this.searchWeatherFunction(this.state.searchText)}} > 
+                          <Icon name="search" />
+                          <Text>Search</Text>
+                      </Button>
+                      </Item>
+      </InputGroup>
+      {this.renderSearchResults()}
+      </View>
+      
+
+          );
+}
 
   displayWeather(data){
-    return(
-    <View>
-      <View style={{flexDirection: "row", margin: 5}} >
-        <Icon name="md-pin" style={{marginBottom: 5}}/>
-        <Text style={{fontSize: 20, padding: 5}}>
-      {this.state.homeLocation}, {this.state.homeCountry}{" "}
-      </Text>
-  </View>
+    
+    // const icon=`./icons/${this.state.homeWeatherIcon}`;
+    console.log(data)
+    if(data.WeatherLoading==false && data.error==false)
+      return (
+        <View>
+          <View style={styles.locationContainer} >
+            <Icon name="md-pin" style={{ marginBottom: 5 }} />
+            <Text style={{ fontSize: 20, padding: 5 }}>
+              {data.Location}, {data.Country}
+            </Text>
+          </View>
+
+
+
+
+
+          <View >
+
+            <Image source={data.WeatherIcon} style={{ alignSelf: 'center' }} />
+
+
+            <Text style={{ fontSize: 55, fontWeight: "bold", marginTop: 10, marginLeft: 5 }}>{data.Temp}° C</Text>
+
+            <Text style={{ fontSize: 16, fontWeight: "bold", marginLeft: 5 }}>
+              {data.Weather}, {data.WeatherDescription}
+            </Text>
+
+
+            <View style={styles.additionalForcast}>
+              <View style={styles.forecast}>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }}>Pressure</Text>
+                <Text style={{ fontSize: 18 }}>{(data.Pressure / 760).toFixed(2)} atm</Text>
+
+
+              </View>
+
+
+              <View style={styles.forecast}>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }}> Humidity</Text>
+                <Text style={{ fontSize: 18 }}>{data.Humidity}</Text>
+
+
+              </View>
+
+
+              <View style={styles.forecast}>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }}> Min/Max</Text>
+                <Text style={{ fontSize: 18 }}>{data.TempMin}° C, {data.TempMax}° C  </Text>
+
+
+              </View>
+
+            </View>
+          </View>
+        </View>
+      );
+        else if(data.error==true){
+          return(
+            <View>
+            <Text style={{color: "red"}}>Error connecting to Server please check your network connection or Try again later.</Text>
+
+
+            </View>
+
+          );
+
+    }
   
-
-  <Text>
-      {this.state.homeWeather}, {this.state.homeWeatherDescription}
-  </Text>
-  <Text>{this.state.homeTemp}</Text>
-  </View>
-    )  }
-
-
-  displaySearchWeather(){
-    return(
-
-      <View>
-      <Text />
-      <Text>
-          {this.state.searchLocation}, {this.state.searchCountry}{" "}
-      </Text>
-
-      <Text>
-          {this.state.searchWeather}, {this.state.searchWeatherDescription}
-      </Text>
-      <Text>{this.state.searchTemp}</Text>
-      </View>            
-);
   }
 
 
-  searchWeatherTab(){
-      return(
-         <Content> 
-        <InputGroup borderType='regular' >
-                        <Input placeholder='Type your text here' onChangeText={(text)=>this.setState({searchText: text})}/>
-                        <Button onPress={()=>{
-                                                
-                                                this.searchWeatherFunction(this.state.searchText)}}> 
-                            <Text>Click Me! </Text>
-                        </Button>
-        </InputGroup>
-        <Text>{this.state.searchText}</Text>
-
-        {this.renderSearchResults()}
-        </Content>
-        
-
-            );
-  }
 
 
   async searchWeatherFunction(location){
@@ -194,37 +299,61 @@ export default class ChildApp extends React.Component {
     const ROOT_URL = `https://api.openweathermap.org/data/2.5/weather?appid=${API_KEY}`;
     const url = `${ROOT_URL}&q=${location}`;
 
+
+    try{
     const request = await fetch(url);
     const weather_request = await request.json();
-    console.log(weather_request.weather[0].main);
-    // const weather_request=await request.data.json();
-    this.setState({searchComplete: true});
+    
     if(weather_request.cod==200)
     this.setState({
-      searchLocation: weather_request.name,
-      searchWeather: weather_request.weather[0].main,
-      searchWeatherDescription: weather_request.weather[0].description,
-      searchCountry: weather_request.sys.country,
-      searchTemp: (weather_request.main.temp - 273).toFixed(2),
-      searchPressure: weather_request.main.pressure,
-      searchHumidity: weather_request.main.humidity,
-      searchTempMin: (weather_request.main.temp_min-273).toFixed(2),
-      searchTempMax: (weather_request.main.temp_max-273).toFixed(2),
-    });  
+      search:{
+        WeatherLoading: false,
+        Location: weather_request.name,
+        Weather: weather_request.weather[0].main,
+        WeatherDescription: weather_request.weather[0].description,
+        WeatherIcon: this.getIcon(weather_request.weather[0].icon),
+        Country: weather_request.sys.country,
+        Temp: (weather_request.main.temp - 273).toFixed(2),
+        Pressure: weather_request.main.pressure,
+        Humidity: weather_request.main.humidity,
+        TempMin: (weather_request.main.temp_min-273).toFixed(2),
+        TempMax: (weather_request.main.temp_max-273).toFixed(2),
+      },
+      searchButtonClicked: false
+    });
+  } catch(error)  {
+      this.setState({search: {WeatherLoading: false, error: true}, searchButtonClicked: false})
+    
+  }
 
   }
 
 
   renderSearchResults(){
-    if(this.state.searchComplete){
-        return this.displaySearchWeather();
-    }
+
+    return(
+
+    <View>
+           
+            {this.renderSearchingSpinner()}
+            {this.displayWeather(this.state.search)}
+
+      </View>   
+
+    );
+
+   
   }
 
 
-  renderHomeLoadingSpinner(){
-    if(this.state.homeWeatherLoading)
-      return <Spinner />
+  renderLoadingSpinner(stats){
+    if(stats)
+      return <Spinner style={{alignSelf: "center"}}/>
+  }
+
+  renderSearchingSpinner(){
+    if(this.state.searchButtonClicked && this.state.search.WeatherLoading)
+      return <Spinner style={{alignSelf: "center"}}/>
   }
 
 
@@ -233,30 +362,31 @@ export default class ChildApp extends React.Component {
       
         
         <Container style={styles.container}>
-        <StatusBar 
-          backgroundColor="blue"  
-          barStyle="light-content" />
+ 
         
 
         {this.renderSelectedTab()}
 
         
+
+        
           
 
-        <Footer>
-        <FooterTab>
-            <Button vertical active={this.state.selectedTab=="home"} onPress={()=>this.setState({selectedTab: "home"})}>
+        <Footer style={{backgroundColor: '#fff'}}>
+        <FooterTab style={{backgroundColor: '#fff'}}>
+            <Button vertical light active={this.state.selectedTab=="home"} onPress={()=>this.setState({selectedTab: "home"})}>
             
-            <Icon name="home" />
+            <Icon name="md-pin" />
             <Text>Home</Text>
           
             </Button>
-            <Button vertical active={this.state.selectedTab=="search"} onPress={()=>this.setState({selectedTab: "search"})} >
+            <Button vertical  light active={this.state.selectedTab=="search"} onPress={()=>this.setState({selectedTab: "search"})} >
             <Icon name="search" />
             <Text>Search</Text>
             </Button>
         </FooterTab>
         </Footer>  
+      
         </Container> 
  
     );
@@ -264,11 +394,34 @@ export default class ChildApp extends React.Component {
 }
 
 const styles = StyleSheet.create({
+
+  locationContainer: {
+    flexDirection: "row",
+    marginTop: 10, 
+    alignSelf: "flex-start",
+    marginLeft: 5,
+
+  },
   container: {
     flex: 1,
-    backgroundColor: '#acacac',
-    justifyContent: 'flex-start',
+    paddingTop: 15,
+    backgroundColor: '#ffffff',
+    // alignItems: 'center',
+      
   },
+
+  additionalForcast: {
+    flexDirection: "row",
+    marginTop: 10, 
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+
+  forecast: {
+    alignItems: 'center',
+    padding: 20,
+  }
 });
 
 
